@@ -31,11 +31,11 @@ func parseCrypttabReader(r io.Reader) ([]*luksMapping, error) {
 	scanner := bufio.NewScanner(r)
 	for scanner.Scan() {
 		line := strings.TrimSpace(scanner.Text())
-		if line == "" || strings.HasPrefix(line, "##") {
+		if line == "" || strings.HasPrefix(line, "#") {
 			continue
 		}
 		fields := strings.Fields(line)
-		if len(fields) < 3 {
+		if len(fields) < 2 {
 			continue
 		}
 
@@ -57,11 +57,11 @@ func parseCrypttabReader(r io.Reader) ([]*luksMapping, error) {
 		m := &luksMapping{
 			ref:     ref,
 			name:    name,
-			keySlot: 0,
+			keySlot: -1,
 		}
 
 		// none/- means interactive passphrase
-		if keyfile != "" && keyfile != "none" {
+		if keyfile != "" && keyfile != "none" && keyfile != "-" {
 			kfPath, kfRef, err := parsePathWithDeviceRef(keyfile, "keyfile")
 			if err != nil {
 				return nil, fmt.Errorf("crypttab: entry %q: %v", name, err)
@@ -144,6 +144,7 @@ func parseCrypttabReader(r io.Reader) ([]*luksMapping, error) {
 					}
 					m.tokenTimeout = d
 					m.tokenTimeoutExplicit = true
+					tokenTimeoutExplicit = true
 				default:
 					debug("crypttab: entry %q: unknown option %q, ignoring", name, opt)
 				}
