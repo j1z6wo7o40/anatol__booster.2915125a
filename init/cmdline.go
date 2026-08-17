@@ -111,7 +111,7 @@ func getNextParam(params string, index int) (string, string, int) {
 			copyMode = true
 			// escaping something, update flag and move on
 			escaping = true
-		case '\n', '\r', '\t', ' ':
+		case 0, '\n', '\r', '\t', ' ':
 			// if we haven't seen any non-whitespace yet just continue
 			if !copyMode {
 				continue
@@ -135,7 +135,7 @@ func getNextParam(params string, index int) (string, string, int) {
 
 				// if we have parsed a key already this ends our parse too, otherwise continue as normal
 				if keyComplete {
-					return key.String(), value.String(), index + i
+					return key.String(), value.String(), index + i + 1
 				}
 
 				continue
@@ -143,7 +143,7 @@ func getNextParam(params string, index int) (string, string, int) {
 
 			// if we are parsing a key, and it isn't empty, then something has gone wrong
 			// same for value
-			if (!keyComplete && key.Len() > 0) || (keyComplete && value.Len() > 0 && lastRune == '=') {
+			if (!keyComplete && key.Len() > 0) || (keyComplete && value.Len() > 0 && lastRune != '=') {
 				// error, this quote is inside real characters
 				// we are going to recover as best we can, just copy the quote and hope for the best
 				warning("while parsing cmdline parameter unexpected \" found at %d, input may be malformed, attempting to proceed", index+i)
