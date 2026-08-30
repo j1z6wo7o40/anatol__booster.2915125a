@@ -324,21 +324,20 @@ func extractFontFamily(pangoDesc string) string {
 		"Thin": true, "Black": true, "ExtraBold": true, "SemiBold": true,
 		"ExtraLight": true, "Regular": true, "Condensed": true, "Heavy": true,
 		"Oblique": true, "Ultra-Bold": true, "Semi-Bold": true,
-		"Sans": true, "Serif": true,
 	}
 
 	parts := strings.Fields(pangoDesc)
-	// Strip trailing style keywords
+	// Strip trailing size (numeric)
 	for len(parts) > 1 {
-		if styleWords[parts[len(parts)-1]] {
+		if _, err := fmt.Sscanf(parts[len(parts)-1], "%f", new(float64)); err == nil {
 			parts = parts[:len(parts)-1]
 		} else {
 			break
 		}
 	}
-	// Strip trailing size (numeric)
+	// Strip trailing style keywords
 	for len(parts) > 1 {
-		if _, err := fmt.Sscanf(parts[len(parts)-1], "%f", new(float64)); err == nil {
+		if styleWords[parts[len(parts)-1]] {
 			parts = parts[:len(parts)-1]
 		} else {
 			break
