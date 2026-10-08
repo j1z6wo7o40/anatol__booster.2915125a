@@ -267,7 +267,7 @@ func parseParams(params string) error {
 				luksOptions = append(luksOptions, flag)
 			}
 		case "rd.luks.name":
-			parts := strings.SplitN(value, "=", 2)
+			parts := strings.Split(value, "=")
 			if len(parts) != 2 {
 				return fmt.Errorf("invalid rd.luks.name kernel parameter %s, expected format rd.luks.name=<UUID>=<name>", value)
 			}
@@ -294,7 +294,7 @@ func parseParams(params string) error {
 
 			if len(parts) == 1 {
 				// do we only have 1 luks device?
-				if len(luksMappings) >= 1 {
+				if len(luksMappings) == 1 {
 					// we attach to it and hope for the best
 					uuid = luksMappings[0].ref.data.(UUID)
 				} else {
@@ -346,7 +346,7 @@ func parseParams(params string) error {
 		default:
 			if dot := strings.IndexByte(key, '.'); value != "" && dot != -1 {
 				// this param looks like a module options
-				mod, param := key[:dot], key[dot:]
+				mod, param := key[:dot], key[dot+1:]
 				mod = normalizeModuleName(mod)
 				moduleParams[mod] = append(moduleParams[mod], param+"="+value)
 			}
@@ -357,7 +357,7 @@ func parseParams(params string) error {
 		if luksOptions != nil {
 			luksMappings[i].options = luksOptions
 		}
-		if !tokenTimeoutExplicit {
+		if tokenTimeoutExplicit {
 			luksMappings[i].tokenTimeout = tokenTimeout
 			luksMappings[i].tokenTimeoutExplicit = true
 		}
