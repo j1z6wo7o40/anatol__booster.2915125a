@@ -802,14 +802,14 @@ func recoverFido2WithEagerPrompt(ctx context.Context, mappingName string, credID
 			return nil, err
 		}
 		if len(pinBytes) == 0 {
-			return nil, errFido2FallbackToKeyboard
+			return nil, errFido2Skipped
 		}
 		pin := string(pinBytes)
 
 		notifyTouch := func() {
 			statusMessage("Please touch the FIDO2 key for " + mappingName)
 		}
-		result, err := fido2Assertion("/dev/"+devName, credID, saltBytes, relyingParty, pin, true, userVerificationRequired, userPresenceRequired, notifyTouch)
+		result, err := fido2Assertion("/dev/"+devName, credID, saltBytes, relyingParty, pin, true, userPresenceRequired, userVerificationRequired, notifyTouch)
 		if err == nil {
 			statusMessage("")
 			return result, nil
@@ -817,7 +817,7 @@ func recoverFido2WithEagerPrompt(ctx context.Context, mappingName string, credID
 
 		if isFido2PinInvalidError(err) {
 			pinAttempts++
-			if pinAttempts > maxPinAttempts {
+			if pinAttempts >= maxPinAttempts {
 				statusMessage("FIDO2 PIN attempts exhausted, falling back to passphrase")
 				return nil, errFido2FallbackToKeyboard
 			}
@@ -825,8 +825,8 @@ func recoverFido2WithEagerPrompt(ctx context.Context, mappingName string, credID
 			continue
 		}
 		if isFido2TouchTimeoutError(err) {
-			// User typed PIN correctly but didn't touch in time — re-prompt.
-			pinAttempts++
+			// User typed PIN correctly but didn't touch in time — re-prompt
+			// without consuming a PIN attempt.
 			promptPrefix = "FIDO2 touch timed out — "
 			continue
 		}
